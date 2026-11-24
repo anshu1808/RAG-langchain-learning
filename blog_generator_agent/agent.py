@@ -6,9 +6,9 @@ def get_llm(model_name:str = "openai/gpt-oss-120b", temperature:float = 0.5):
     api_key = api_key=os.environ.get("GROQ_API_KEY")
     llm = ChatGroq(model = model_name, temperature=temperature, api_key=api_key)
     return llm 
+ 
 
-
-RESEARCHER_PROMPT = ChatPromptTemplate.from_message([
+RESEARCHER_PROMPT = ChatPromptTemplate.from_messages([
     {"role":"system", "content":"""
         "you are a Research agen. given a blog tool and target audience, produce a clear," structure reserach outline. include:\n"
         "1. 5-7 keys point the blog should cover\n"
@@ -22,7 +22,7 @@ RESEARCHER_PROMPT = ChatPromptTemplate.from_message([
      {"role":"user", "content":"Topic: {topic}, Audience: {audience},{revision_hint}, Write the research outline for the blog."
 }])
 
-def researcher_invoke(llm, topic:str, audience:str, feedback:str):
+def researcher_agent(llm, topic:str, audience:str, feedback:str):
     research_prompt = RESEARCHER_PROMPT.format_messages(
         topic=topic,
         audience=audience,
@@ -32,7 +32,7 @@ def researcher_invoke(llm, topic:str, audience:str, feedback:str):
     research_response = llm.invoke(research_prompt)
     return research_response.content
 
-writer_prompt = ChatPromptTemplate.from_message([
+writer_prompt = ChatPromptTemplate.from_messages([
     {"role":"system", "content":"""
         "you are a blog writer. given a research outline, write a clear, structured blog post. include:\n"
         "1. An engaging introduction that hooks the reader\n"
@@ -47,19 +47,19 @@ writer_prompt = ChatPromptTemplate.from_message([
 ])
 
 def writer_agent(llm, topic:str, audience:str, feedback:str = "", research:str = ""):
-    writer_prompt = writer_prompt.format_messages(
+    formatted_prompt = writer_prompt.format_messages(
         topic=topic,
         audience=audience,
         research=research,
         feedback=feedback,
         revision_hint=f"this is revision number for the feedback on your previous research- please check it.: {feedback}" if feedback else "this is the first draft. please change the tone and style to be more engaging and appropriate for the target audience."
     )
-    research_response = llm.invoke(writer_prompt)
+    research_response = llm.invoke(formatted_prompt)
     return research_response.content
 
 ##########editor prompt
 
-editor_prompt = ChatPromptTemplate.from_message([
+editor_prompt = ChatPromptTemplate.from_messages([
     {"role":"system", "content":"""
         "you are a blog editor. given a blog post, review and improve it for clarity, coherence, and engagement. include:\n"
         "1. Check for grammatical and spelling errors\n"
@@ -74,12 +74,11 @@ editor_prompt = ChatPromptTemplate.from_message([
     {"role":"user", "content":"Topic: {topic}, Audience: {audience}, Draft: {draft}, return the published blog post."}
 ])
 
-def editor_agent(llm, topic:str, audience:str, draft:str):
-    editor_prompt = editor_prompt.format_messages(
+def editor_agent(llm, topic:str, audience:str, draft:str): 
+    formatted_prompt = editor_prompt.format_messages(
         topic=topic,
         audience=audience,
         draft=draft
     )
-    research_response = llm.invoke(editor_prompt)
+    research_response = llm.invoke(formatted_prompt)
     return research_response.content
-      
