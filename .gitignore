@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+env/
+venv/
+
+# Secrets
+.env
+*.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Chroma DB
+chroma_db/
+
+# VS Code
+.vscode/
+
+# OS Files
+.DS_Store
